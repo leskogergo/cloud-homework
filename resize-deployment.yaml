@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: resize
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: resize
+  template:
+    metadata:
+      labels:
+        app: resize
+    spec:
+      containers:
+        - name: resize
+          image: leskogergo/resize:latest
+          env:
+            - name: MINIO_ENDPOINT
+              value: "minio-service:9000"
+            - name: MINIO_ACCESS_KEY
+              value: "minioadmin"
+            - name: MINIO_SECRET_KEY
+              value: "minioadmin"
+            - name: REDIS_HOST
+              value: "redis-service"
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "50m"
+            limits:
+              memory: "128Mi"
+              cpu: "100m"
+      tolerations:
+        - key: "node.kubernetes.io/disk-pressure"
+          operator: "Exists"
+          effect: "NoSchedule"
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: resize-service
+spec:
+  selector:
+    app: resize
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80

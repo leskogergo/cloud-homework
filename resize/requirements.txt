@@ -1,0 +1,6 @@
+fastapi
+uvicorn
+minio
+redis
+opencv-python
+numpy

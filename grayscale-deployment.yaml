@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grayscale
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: grayscale
+  template:
+    metadata:
+      labels:
+        app: grayscale
+    spec:
+      containers:
+        - name: grayscale
+          image: leskogergo/grayscale:latest
+          ports:
+            - containerPort: 80
+          env:
+            - name: MINIO_ENDPOINT
+              value: "minio-service:9000"
+            - name: MINIO_ACCESS_KEY
+              value: "minioadmin"
+            - name: MINIO_SECRET_KEY
+              value: "minioadmin"
+            - name: REDIS_HOST
+              value: "redis-service"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: grayscale-service
+spec:
+  selector:
+    app: grayscale
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80

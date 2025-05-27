@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: objectdetect
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: objectdetect
+  template:
+    metadata:
+      labels:
+        app: objectdetect
+    spec:
+      containers:
+        - name: objectdetect
+          image: leskogergo/objectdetect:latest
+          ports:
+            - containerPort: 80
+          env:
+            - name: MINIO_ENDPOINT
+              value: "minio-service:9000"
+            - name: MINIO_ACCESS_KEY
+              value: "minioadmin"
+            - name: MINIO_SECRET_KEY
+              value: "minioadmin"
+            - name: REDIS_HOST
+              value: "redis-service"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: objectdetect-service
+spec:
+  selector:
+    app: objectdetect
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+

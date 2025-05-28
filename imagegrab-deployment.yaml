@@ -14,40 +14,37 @@ spec:
     spec:
       containers:
         - name: imagegrab
-          image: leskogergo/imagegrab:latest
+          image: leskogergo/imagegrab:latest # ← Saját image-ed vagy helyi build
           ports:
-            - containerPort: 80
+            - containerPort: 8000
           env:
             - name: MINIO_ENDPOINT
               value: "minio-service:9000"
             - name: MINIO_ACCESS_KEY
-              value: "minioadmin"
+              valueFrom:
+                secretKeyRef:
+                  name: minio-secret
+                  key: accesskey
             - name: MINIO_SECRET_KEY
-              value: "minioadmin"
+              valueFrom:
+                secretKeyRef:
+                  name: minio-secret
+                  key: secretkey
             - name: REDIS_HOST
-              value: "redis-service"
-          resources:
-            requests:
-              memory: "64Mi"
-              cpu: "50m"
-            limits:
-              memory: "128Mi"
-              cpu: "100m"
-      tolerations:
-        - key: "node.kubernetes.io/disk-pressure"
-          operator: "Exists"
-          effect: "NoSchedule"
+              value: "redis"
+            - name: OUTPUT_BUCKET
+              value: "imagegrab-raw"
 
 ---
-
 apiVersion: v1
 kind: Service
 metadata:
-  name: imagegrab-service
+  name: imagegrab
 spec:
   selector:
     app: imagegrab
   ports:
     - protocol: TCP
       port: 80
-      targetPort: 80
+      targetPort: 8000
+  type: NodePort

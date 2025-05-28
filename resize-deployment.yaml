@@ -2,6 +2,8 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: resize
+  labels:
+    app: resize
 spec:
   replicas: 1
   selector:
@@ -14,38 +16,28 @@ spec:
     spec:
       containers:
         - name: resize
-          image: leskogergo/resize:latest
+          image: leskogergo/resize-service:latest
+          imagePullPolicy: Always
           env:
             - name: MINIO_ENDPOINT
               value: "minio-service:9000"
             - name: MINIO_ACCESS_KEY
-              value: "minioadmin"
+              valueFrom:
+                secretKeyRef:
+                  name: minio-secret
+                  key: accesskey
             - name: MINIO_SECRET_KEY
-              value: "minioadmin"
+              valueFrom:
+                secretKeyRef:
+                  name: minio-secret
+                  key: secretkey
             - name: REDIS_HOST
               value: "redis-service"
-          resources:
-            requests:
-              memory: "64Mi"
-              cpu: "50m"
-            limits:
-              memory: "128Mi"
-              cpu: "100m"
-      tolerations:
-        - key: "node.kubernetes.io/disk-pressure"
-          operator: "Exists"
-          effect: "NoSchedule"
-
----
-
-apiVersion: v1
-kind: Service
-metadata:
-  name: resize-service
-spec:
-  selector:
-    app: resize
-  ports:
-    - protocol: TCP
-      port: 80
-      targetPort: 80
+            - name: REDIS_QUEUE
+              value: "resize"
+            - name: NEXT_QUEUE
+              value: "grayscale"
+            - name: INPUT_BUCKET
+              value: "imagegrab"
+            - name: OUTPUT_BUCKET
+              value: "resize"

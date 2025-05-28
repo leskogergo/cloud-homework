@@ -14,9 +14,8 @@ spec:
     spec:
       containers:
         - name: grayscale
-          image: leskogergo/grayscale:latest
-          ports:
-            - containerPort: 80
+          image: leskogergo/grayscale-service:latest
+          imagePullPolicy: Always
           env:
             - name: MINIO_ENDPOINT
               value: "minio-service:9000"
@@ -26,15 +25,7 @@ spec:
               value: "minioadmin"
             - name: REDIS_HOST
               value: "redis-service"
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: grayscale-service
-spec:
-  selector:
-    app: grayscale
-  ports:
-    - protocol: TCP
-      port: 80
-      targetPort: 80
+            - name: REDIS_QUEUE
+              value: "grayscale"
+            - name: NEXT_QUEUE
+              value: "objectdetect"

@@ -2,6 +2,8 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: objectdetect
+  labels:
+    app: objectdetect
 spec:
   replicas: 1
   selector:
@@ -14,28 +16,28 @@ spec:
     spec:
       containers:
         - name: objectdetect
-          image: leskogergo/objectdetect:latest
-          ports:
-            - containerPort: 80
+          image: leskogergo/objectdetect-service:latest
+          imagePullPolicy: Always
           env:
             - name: MINIO_ENDPOINT
               value: "minio-service:9000"
             - name: MINIO_ACCESS_KEY
-              value: "minioadmin"
+              valueFrom:
+                secretKeyRef:
+                  name: minio-secret
+                  key: accesskey
             - name: MINIO_SECRET_KEY
-              value: "minioadmin"
+              valueFrom:
+                secretKeyRef:
+                  name: minio-secret
+                  key: secretkey
             - name: REDIS_HOST
               value: "redis-service"
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: objectdetect-service
-spec:
-  selector:
-    app: objectdetect
-  ports:
-    - protocol: TCP
-      port: 80
-      targetPort: 80
-
+            - name: REDIS_QUEUE
+              value: "objectdetect"
+            - name: NEXT_QUEUE
+              value: "tag"
+            - name: INPUT_BUCKET
+              value: "grayscale"
+            - name: OUTPUT_BUCKET
+              value: "objectdetect"

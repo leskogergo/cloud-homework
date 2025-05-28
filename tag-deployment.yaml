@@ -14,18 +14,29 @@ spec:
     spec:
       containers:
         - name: tag
-          image: leskogergo/tag:latest
-          ports:
-            - containerPort: 80
+          image: leskogergo/tag:latest  # ← saját image-ed
+          imagePullPolicy: IfNotPresent
           env:
             - name: MINIO_ENDPOINT
               value: "minio-service:9000"
             - name: MINIO_ACCESS_KEY
-              value: "minioadmin"
+              valueFrom:
+                secretKeyRef:
+                  name: minio-secret
+                  key: accesskey
             - name: MINIO_SECRET_KEY
-              value: "minioadmin"
+              valueFrom:
+                secretKeyRef:
+                  name: minio-secret
+                  key: secretkey
             - name: REDIS_HOST
-              value: "redis-service"
+              value: "redis"
+            - name: INPUT_BUCKET
+              value: "objectdetect-output"
+            - name: ORIGINAL_BUCKET
+              value: "imagegrab-raw"
+            - name: OUTPUT_BUCKET
+              value: "final-output"
 ---
 apiVersion: v1
 kind: Service
@@ -37,4 +48,5 @@ spec:
   ports:
     - protocol: TCP
       port: 80
-      targetPort: 80
+      targetPort: 8000
+
